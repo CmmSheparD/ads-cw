@@ -13,8 +13,8 @@ class List {
 public:
     class Iterator;
 
-    Iterator begin();
-    Iterator end();
+    Iterator begin() { return Iterator(head_); }
+    Iterator end() { return Iterator(tail_); }
 
     List() : head_(nullptr), tail_(nullptr), size_(0) {}
     List(const List &src);
@@ -54,28 +54,6 @@ struct List<T>::Node {
     std::shared_ptr<Node> prev;
 
     U data;
-};
-
-
-template<class T>
-class List<T>::Iterator {
-public:
-    Iterator() : cur_(nullptr) {}
-    Iterator(const Iterator &other) : cur_(other.cur) {}
-    Iterator(const Iterator &&other) { cur_.swap(other.cur_); }
-
-    ~Iterator() = default;
-
-    // Iterator &operator++();
-    // Iterator operator++(int);
-
-    // Iterator &operator--();
-    // Iterator operator--(int);
-
-    // friend bool operator==(const Iterator &left, const Iterator &right);
-    // friend bool operator!=(const Iterator &left, const Iterator &right);
-private:
-    std::shared_ptr<Node<T>> cur_;
 };
 
 
@@ -224,6 +202,116 @@ void List<T>::clear()
     }
     size_ = 0;
 }
+
+
+template<class T>
+class List<T>::Iterator {
+public:
+    Iterator() : cur_(nullptr) {}
+    Iterator(const Iterator &other) : cur_(other.cur_) {}
+    Iterator(Iterator &&other) { cur_.swap(other.cur_); }
+    Iterator(const std::shared_ptr<Node<T>> node) : cur_(node) {}
+
+    Iterator &operator=(const Iterator &other);
+    Iterator &operator=(Iterator &&other);
+
+    ~Iterator() = default;
+
+    Iterator &operator++();
+    Iterator operator++(int);
+
+    Iterator &operator--();
+    Iterator operator--(int);
+
+    bool operator==(const Iterator &other);
+    bool operator!=(const Iterator &other);
+
+    T &operator*();
+
+    operator bool() const { return bool(cur_); }
+private:
+    std::shared_ptr<Node<T>> cur_;
+};
+
+
+template<class T>
+typename List<T>::Iterator &List<T>::Iterator::operator=(const Iterator &other)
+{
+    if (this != &other)
+        cur_ = other.cur_;
+    return *this;
+}
+
+template<class T>
+typename List<T>::Iterator &List<T>::Iterator::operator=(Iterator &&other)
+{
+    if (this != &other)
+        cur_.swap(other.cur_);
+    return *this;
+}
+
+
+template<class T>
+typename List<T>::Iterator &List<T>::Iterator::operator++()
+{
+    if (!cur_)
+        throw std::out_of_range("Traversing with out-of-border iterator.");
+    cur_ = cur_->next;
+    return *this;
+}
+
+template<class T>
+typename List<T>::Iterator List<T>::Iterator::operator++(int)
+{
+    Iterator tmp = *this;
+    operator++();
+    return tmp;
+}
+
+
+template<class T>
+typename List<T>::Iterator &List<T>::Iterator::operator--()
+{
+    if (!cur_)
+        throw std::out_of_range("Traversing with out-of-border iterator.");
+    cur_ = cur_->prev;
+    return *this;
+}
+
+template<class T>
+typename List<T>::Iterator List<T>::Iterator::operator--(int)
+{
+    Iterator tmp = *this;
+    operator--();
+    return tmp;
+}
+
+
+template<class T>
+bool List<T>::Iterator::operator==(const typename List<T>::Iterator &other)
+{
+    if (!cur_ || !other.cur_)
+        return false;
+    return cur_ == other.cur_;
+}
+
+template<class T>
+bool List<T>::Iterator::operator!=(const typename List<T>::Iterator &other)
+{
+    if (!cur_ || !other.cur_)
+        return false;
+    return !(cur_ == other.cur_);
+}
+
+
+template<class T>
+T &List<T>::Iterator::operator*()
+{
+    if (!cur_)
+        throw std::logic_error("Dereferencing out-of-border iterator.");
+    return cur_->data;
+}
+
 
 }   // namespace data_structs
 
