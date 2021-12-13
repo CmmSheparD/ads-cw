@@ -1,6 +1,6 @@
 #pragma once
-#ifndef PARSING_TABLE_HH
-#define PARSING_TABLE_HH
+#ifndef LIST_HH
+#define LIST_HH
 
 #include <memory>
 #include <stdexcept>
@@ -14,7 +14,7 @@ public:
     class Iterator;
 
     Iterator begin() { return Iterator(head_); }
-    Iterator end() { return Iterator(tail_); }
+    Iterator end();
 
     List() : head_(nullptr), tail_(nullptr), size_(0) {}
     List(const List &src);
@@ -55,6 +55,15 @@ struct List<T>::Node {
 
     U data;
 };
+
+
+template<class T>
+typename List<T>::Iterator List<T>::end()
+{
+    Iterator it;
+    it.past_the_end_ = true;
+    return it;
+}
 
 
 template<class T>
@@ -207,10 +216,14 @@ void List<T>::clear()
 template<class T>
 class List<T>::Iterator {
 public:
-    Iterator() : cur_(nullptr) {}
-    Iterator(const Iterator &other) : cur_(other.cur_) {}
-    Iterator(Iterator &&other) { cur_.swap(other.cur_); }
-    Iterator(const std::shared_ptr<Node<T>> node) : cur_(node) {}
+    Iterator() : cur_(nullptr), past_the_end_(false) {}
+    Iterator(const Iterator &other)
+        : cur_(other.cur_), past_the_end_(other.cur_)
+    {}
+    Iterator(Iterator &&other);
+    Iterator(const std::shared_ptr<Node<T>> node)
+        : cur_(node), past_the_end_(false)
+    {}
 
     Iterator &operator=(const Iterator &other);
     Iterator &operator=(Iterator &&other);
@@ -229,24 +242,45 @@ public:
     T &operator*();
 
     operator bool() const { return bool(cur_); }
+
+    friend Iterator List<T>::end();
 private:
     std::shared_ptr<Node<T>> cur_;
+    /*
+     * Past the end status may be obtained in three ways:
+     * 1. By copying another past the end iterator.
+     * 2. By end() function of a list.
+     * 3. By traversing forward past the last element.
+     */
+    bool past_the_end_;
 };
+
+
+template<class T>
+List<T>::Iterator::Iterator(typename List<T>::Iterator &&other)
+    : past_the_end_(other.past_the_end_)
+{
+    cur_.swap(other.cur_);
+}
 
 
 template<class T>
 typename List<T>::Iterator &List<T>::Iterator::operator=(const Iterator &other)
 {
-    if (this != &other)
+    if (this != &other) {
         cur_ = other.cur_;
+        past_the_end_ = other.past_the_end_;
+    }
     return *this;
 }
 
 template<class T>
 typename List<T>::Iterator &List<T>::Iterator::operator=(Iterator &&other)
 {
-    if (this != &other)
+    if (this != &other) {
         cur_.swap(other.cur_);
+        past_the_end_ = other.past_the_end_;
+    }
     return *this;
 }
 
@@ -254,9 +288,13 @@ typename List<T>::Iterator &List<T>::Iterator::operator=(Iterator &&other)
 template<class T>
 typename List<T>::Iterator &List<T>::Iterator::operator++()
 {
+    if (past_the_end_)
+        throw std::out_of_range("Traversing with past-the-end iterator.");
     if (!cur_)
-        throw std::out_of_range("Traversing with out-of-border iterator.");
+        throw std::logic_error("Traversing with unbound iterator.");
     cur_ = cur_->next;
+    if (!cur_)
+        past_the_end_ = true;
     return *this;
 }
 
@@ -272,8 +310,10 @@ typename List<T>::Iterator List<T>::Iterator::operator++(int)
 template<class T>
 typename List<T>::Iterator &List<T>::Iterator::operator--()
 {
+    if (past_the_end_)
+        throw std::out_of_range("Traversing with past-the-end iterator.");
     if (!cur_)
-        throw std::out_of_range("Traversing with out-of-border iterator.");
+        throw std::out_of_range("Traversing with unbound iterator.");
     cur_ = cur_->prev;
     return *this;
 }
@@ -290,6 +330,8 @@ typename List<T>::Iterator List<T>::Iterator::operator--(int)
 template<class T>
 bool List<T>::Iterator::operator==(const typename List<T>::Iterator &other)
 {
+    if (past_the_end_ && other.past_the_end_)
+        return true;
     if (!cur_ || !other.cur_)
         return false;
     return cur_ == other.cur_;
@@ -298,21 +340,20 @@ bool List<T>::Iterator::operator==(const typename List<T>::Iterator &other)
 template<class T>
 bool List<T>::Iterator::operator!=(const typename List<T>::Iterator &other)
 {
-    if (!cur_ || !other.cur_)
-        return false;
-    return !(cur_ == other.cur_);
+    return !(*this == other);
 }
 
 
 template<class T>
 T &List<T>::Iterator::operator*()
 {
+    if (past_the_end_)
+        throw std::out_of_range("Dereferencing past-the-end iterator.");
     if (!cur_)
-        throw std::logic_error("Dereferencing out-of-border iterator.");
+        throw std::out_of_range("Dereferencing unbound iterator.");
     return cur_->data;
 }
 
-
 }   // namespace data_structs
 
-#endif  // PARSING_TABLE_HH
+#endif  // LIST_HH

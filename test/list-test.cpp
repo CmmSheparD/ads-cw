@@ -157,20 +157,20 @@ TEST_F(ListEmptyTest, IteratorCreationTest)
     ASSERT_NO_THROW(beg = list_.begin());
     ASSERT_NO_THROW(end = list_.end());
     ASSERT_FALSE(beg == end);
-    ASSERT_FALSE(beg != end);
+    ASSERT_FALSE(beg == end);
 }
 
 TEST_F(ListEmptyTest, IteratorDereferenceIncPrefixTest)
 {
     List<int>::Iterator beg = list_.begin();
-    ASSERT_THROW(++beg, std::out_of_range);
+    ASSERT_THROW(++beg, std::logic_error);
     ASSERT_THROW(*beg, std::logic_error);
 }
 
 TEST_F(ListEmptyTest, IteratorDereferenceIncPostfixTest)
 {
     List<int>::Iterator beg = list_.begin();
-    ASSERT_THROW(beg++, std::out_of_range);
+    ASSERT_THROW(beg++, std::logic_error);
     ASSERT_THROW(*beg, std::logic_error);
 }
 
@@ -376,7 +376,7 @@ TEST_F(ListTest, IteratorDereferencePrefixTest)
         ++beg;
     }
     ASSERT_THROW(++beg, std::out_of_range);
-    ASSERT_THROW(*beg, std::logic_error);
+    ASSERT_THROW(*beg, std::out_of_range);
 }
 
 TEST_F(ListTest, IteratorDereferencePostfixTest)
@@ -387,27 +387,5 @@ TEST_F(ListTest, IteratorDereferencePostfixTest)
         beg++;
     }
     ASSERT_THROW(beg++, std::out_of_range);
-    ASSERT_THROW(*beg, std::logic_error);
-}
-
-TEST_F(ListTest, IteratorDereferenceDecPrefixTest)
-{
-    List<int>::Iterator end = list_.end();
-    for (size_t i = list_.size() - 1; i < list_.size(); --i) {
-        ASSERT_EQ(*end, list_.at(i));
-        --end;
-    }
-    ASSERT_THROW(--end, std::out_of_range);
-    ASSERT_THROW(*end, std::logic_error);
-}
-
-TEST_F(ListTest, IteratorDereferenceDecPostfixTest)
-{
-    List<int>::Iterator end = list_.end();
-    for (size_t i = list_.size() - 1; i < list_.size(); --i) {
-        ASSERT_EQ(*end, list_.at(i));
-        end--;
-    }
-    ASSERT_THROW(end--, std::out_of_range);
-    ASSERT_THROW(*end, std::logic_error);
+    ASSERT_THROW(*beg, std::out_of_range);
 }
