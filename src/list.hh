@@ -13,7 +13,7 @@ class List {
 public:
     class Iterator;
 
-    Iterator begin() { return Iterator(head_); }
+    Iterator begin();
     Iterator end();
 
     List() : head_(nullptr), tail_(nullptr), size_(0) {}
@@ -56,6 +56,15 @@ struct List<T>::Node {
     U data;
 };
 
+
+template<class T>
+typename List<T>::Iterator List<T>::begin()
+{
+    Iterator it(head_);
+    if (!head_)
+        it.past_the_end_ = true;
+    return it;
+}
 
 template<class T>
 typename List<T>::Iterator List<T>::end()
@@ -241,15 +250,16 @@ public:
 
     T &operator*();
 
-    operator bool() const { return bool(cur_); }
+    operator bool() const { return past_the_end_ || !cur_; }
 
+    friend Iterator List<T>::begin();
     friend Iterator List<T>::end();
 private:
     std::shared_ptr<Node<T>> cur_;
     /*
      * Past the end status may be obtained in three ways:
      * 1. By copying another past the end iterator.
-     * 2. By end() function of a list.
+     * 2. By iterator factory function of a list.
      * 3. By traversing forward past the last element.
      */
     bool past_the_end_;
@@ -353,6 +363,7 @@ T &List<T>::Iterator::operator*()
         throw std::out_of_range("Dereferencing unbound iterator.");
     return cur_->data;
 }
+
 
 }   // namespace data_structs
 

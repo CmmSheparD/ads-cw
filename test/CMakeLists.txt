@@ -12,8 +12,16 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(list-test)
 target_sources(list-test
-    PRIVATE list-test.cpp
-    PUBLIC ../src/list.hh
+	PRIVATE list-test.cpp
+	PUBLIC ../src/list.hh
 )
 
 target_link_libraries(list-test gtest_main)
+
+add_executable(parsing-table-test)
+target_sources(parsing-table-test
+	PRIVATE parsing-table-test.cpp
+	PUBLIC ../src/parsing-table.hh
+)
+
+target_link_libraries(parsing-table-test parsing-table gtest_main)
