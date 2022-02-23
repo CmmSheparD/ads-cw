@@ -6,7 +6,10 @@
 
 #include <gtest/gtest.h>
 
-using std::string;
+#include "../src/calculation-tree.hh"
+
+using namespace std;
+using namespace calculation;
 using pt = infix_parsing::ParsingTable;
 
 /*
@@ -61,36 +64,36 @@ TEST(SearchBinary, NonExistent)
     ASSERT_FALSE(pt::is_binary_operator("+"));
 }
 
-
 TEST(RegisterAndFind, Constants)
 {
     ASSERT_NO_THROW(pt::register_constant("pi", 3.1415926535));
     ASSERT_TRUE(pt::is_constant("pi"));
-    ASSERT_EQ(pt::get_constant("pi"), 3.1415926535);
+    ASSERT_EQ(pt::get_constant("pi")->evaluate(), 3.1415926535);
 
     ASSERT_NO_THROW(pt::register_constant("e", 2.7));
     ASSERT_TRUE(pt::is_constant("e"));
-    ASSERT_EQ(pt::get_constant("e"), 2.7);
+    ASSERT_EQ(pt::get_constant("e")->evaluate(), 2.7);
 }
+
 
 TEST(RegisterAndFind, Unary)
 {
     ASSERT_NO_THROW(pt::register_unary("sin", (double(*)(double))std::sin));
     ASSERT_TRUE(pt::is_unary_operator("sin"));
-    std::cout << pt::get_unary_operator("sin")(3.1415926535) << std::endl;
+    ASSERT_NO_THROW(pt::get_unary_operator("sin"));
 
     ASSERT_NO_THROW(pt::register_unary("-", std::negate<double>()));
     ASSERT_TRUE(pt::is_unary_operator("-"));
-    std::cout << pt::get_unary_operator("-")(3.1415926535) << std::endl;
+    ASSERT_NO_THROW(pt::get_unary_operator("-"));
 }
 
 TEST(RegisterAndFind, Binary)
 {
-    ASSERT_NO_THROW(pt::register_binary("^", (double(*)(double, double))std::pow));
+    ASSERT_NO_THROW(pt::register_binary("^", (double(*)(double, double))std::pow, 0));
     ASSERT_TRUE(pt::is_binary_operator("^"));
-    std::cout << pt::get_binary_operator("^")(3, 2) << std::endl;
+    ASSERT_NO_THROW(pt::get_binary_operator("^"));
 
-    ASSERT_NO_THROW(pt::register_binary("+", std::plus<double>()));
+    ASSERT_NO_THROW(pt::register_binary("+", std::plus<double>(), 5));
     ASSERT_TRUE(pt::is_binary_operator("+"));
-    std::cout << pt::get_binary_operator("+")(1, 2) << std::endl;
+    ASSERT_NO_THROW(pt::get_binary_operator("+"));
 }

@@ -20,6 +20,8 @@ public:
     List(const List &src);
     List(List &&src);
 
+    List(Iterator begin, const Iterator &end);
+
     ~List() { clear(); }
 
     void push_back(const T &value);
@@ -90,6 +92,16 @@ List<T>::List(List<T> &&src) : size_(src.size_), size_(src.size_)
 {
     head_.swap(src.head_);
     tail_.swap(src.tail_);
+}
+
+template<class T>
+List<T>::List(List<T>::Iterator begin, const List<T>::Iterator &end)
+    : List()
+{
+    while (begin != end) {
+        push_back(*begin);
+        ++begin;
+    }
 }
 
 
@@ -227,7 +239,7 @@ class List<T>::Iterator {
 public:
     Iterator() : cur_(nullptr), past_the_end_(false) {}
     Iterator(const Iterator &other)
-        : cur_(other.cur_), past_the_end_(other.cur_)
+        : cur_(other.cur_), past_the_end_(other.past_the_end_)
     {}
     Iterator(Iterator &&other);
     Iterator(const std::shared_ptr<Node<T>> node)
@@ -363,7 +375,6 @@ T &List<T>::Iterator::operator*()
         throw std::out_of_range("Dereferencing unbound iterator.");
     return cur_->data;
 }
-
 
 }   // namespace data_structs
 

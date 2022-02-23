@@ -8,12 +8,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "calculation-tree.hh"
 #include "list.hh"
 
 namespace infix_parsing {
 
 /*
- * A static table that holds entries on how to
+ * A static table that holds entries on how to decode text into math
  */
 class ParsingTable {
 public:
@@ -25,19 +26,20 @@ public:
     ParsingTable(ParsingTable &&) = delete;
 
     static bool is_valid_name(const std::string &name);
+    static bool is_starting_digit(char c) { return std::isdigit(c); }
+    static bool is_digit(char c) { return std::isdigit(c) || c == '.'; }
 
     static void register_constant(const std::string &name, const double value);
     static void register_unary(const std::string &name, std::function<double (double)> f);
-    static void register_binary(const std::string &name, std::function<double (double, double)> f);
+    static void register_binary(const std::string &name, std::function<double (double, double)> f, unsigned order);
 
-    static bool is_digit(char c) { return std::isdigit(c) || c == '.'; }
     static bool is_constant(const std::string &name);
     static bool is_unary_operator(const std::string &name);
     static bool is_binary_operator(const std::string &name);
 
-    static double get_constant(const std::string &name);
-    static std::function<double(double)> get_unary_operator(const std::string &name);
-    static std::function<double(double, double)> get_binary_operator(const std::string &name);
+    static std::shared_ptr<calculation::Constant> get_constant(const std::string &name);
+    static std::shared_ptr<calculation::UnaryOperator> get_unary_operator(const std::string &name);
+    static std::shared_ptr<calculation::BinaryOperator> get_binary_operator(const std::string &name);
 private:
     struct ConstantEntry;
     struct UnaryOperatorEntry;
@@ -70,33 +72,30 @@ public:
 struct ParsingTable::ConstantEntry {
     ConstantEntry() = delete;
     ConstantEntry(const std::string &name, const double value)
-        : name(name), value(value)
+        : data(value, name)
     {}
 
-    std::string name;
-    const double value;
+    const calculation::Constant data;
 };
 
 
 struct ParsingTable::UnaryOperatorEntry {
     UnaryOperatorEntry() = delete;
     UnaryOperatorEntry(const std::string &name, std::function<double(double)> f)
-        : name(name), func(f)
+        : data(name, f)
     {}
 
-    std::string name;
-    std::function<double(double)> func;
+    const calculation::UnaryOperator data;
 };
 
 
 struct ParsingTable::BinaryOperatorEntry {
     BinaryOperatorEntry() = delete;
-    BinaryOperatorEntry(const std::string &name, std::function<double(double, double)> f)
-        : name(name), func(f)
+    BinaryOperatorEntry(const std::string &name, std::function<double(double, double)> f, unsigned order)
+        : data(name, f, order)
     {}
 
-    std::string name;
-    std::function<double(double, double)> func;
+    const calculation::BinaryOperator data;
 };
 
 }   // namespace infix_parsing

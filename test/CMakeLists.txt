@@ -24,4 +24,14 @@ target_sources(parsing-table-test
 	PUBLIC ../src/parsing-table.hh
 )
 
-target_link_libraries(parsing-table-test parsing-table gtest_main)
+target_link_libraries(parsing-table-test parsing-table calculation-tree gtest_main)
+
+add_executable(parsing-test)
+target_sources(parsing-test
+	PRIVATE parsing-test.cpp
+	PUBLIC ../src/parsing.hh
+)
+
+target_link_libraries(parsing-test parsing parsing-table calculation-tree gtest_main)
+
+

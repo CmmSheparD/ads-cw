@@ -156,8 +156,7 @@ TEST_F(ListEmptyTest, IteratorCreationTest)
     List<int>::Iterator beg, end;
     ASSERT_NO_THROW(beg = list_.begin());
     ASSERT_NO_THROW(end = list_.end());
-    ASSERT_FALSE(beg == end);
-    ASSERT_FALSE(beg == end);
+    ASSERT_TRUE(beg == end);
 }
 
 TEST_F(ListEmptyTest, IteratorDereferenceIncPrefixTest)
